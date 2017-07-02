@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from rest_framework import generics
+from rest_framework import generics, renderers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -40,9 +40,18 @@ class UserDetail(generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
 
-@api_view
+@api_view(['GET',])
 def api_root(reqeust, format=None):
     return Response({
         'users': reverse('user-list', request=reqeust, format=format),
         'snippets': reverse('snippet-list', reqeust=reqeust, format=format)
     })
+
+
+class SnippetHighlight(generics.GenericAPIView):
+    queryset = Snippet.objects.all()
+    renderer_classes = (renderers.StaticHTMLRenderer,)
+
+    def get(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
